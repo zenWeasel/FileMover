@@ -6,6 +6,7 @@ import os
 import re
 import sys
 from ConfigParser import SafeConfigParser
+from shutil import move
 from datetime import datetime
 
 class FileMover(object):
@@ -82,6 +83,15 @@ class FileMover(object):
         table_name = '%s_%s' % (namespace, document_type)
         return table_name
 
+    def move_file(self, filepath):
+        exist_path, filename = os.path.split(filepath)
+        mv_parser = self._parse_ini()
+        processed_path = mv_parser.get('filemover', 'processed_path')
+        move_path = os.path.join(processed_path, filename)
+        move(filepath, move_path)
+        sys.stdout.write('Moved file to :%s\n' % move_path)
+        
+
 
 
 def main():
@@ -89,6 +99,7 @@ def main():
     parser.add_argument('--action', action="store", dest="action")
     parser.add_argument('--app', action="store", dest="app")
     parser.add_argument('--type', action="store", dest="filetype")
+    parser.add_argument('--filename', action='store', dest='filepath')
     results = parser.parse_args()
     fm = FileMover()
     fm.set_results(results)
@@ -98,3 +109,6 @@ def main():
 
     if results.action == 'getfilename':
         fm.get_file_name()
+
+    if results.action == 'move':
+        fm.move_file(fm.results.filepath)
